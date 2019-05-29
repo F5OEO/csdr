@@ -54,23 +54,23 @@ if grep -q sse /proc/cpuinfo; then
     echo "$PARAMS_SSE -mfpmath=sse"
     return 0
 else
-    ARCH = $(uname -m)
+    ARCH=$(uname -m)
     # Detect Raspberry Pi
-    if grep -q /proc/device-tree/model Raspberry; then
-        if $ARCH eq "aarch64"; then # Probably RPi 3+ on 64bit
+    if grep -q 'Raspberry' /proc/device-tree/model; then
+        if [ "$ARCH" = "aarch64" ]; then # Probably RPi 3+ on 64bit
             # Float ABI is always hard on AARCH64. TODO: Does RPi 1 or 2 also have aarch64?
-            PARAMS_PI = "-mcpu=cortex-a53 -mtune=cortex-a53"
+            PARAMS_PI="-mcpu=cortex-a53 -mtune=cortex-a53"
         else # note -mcpu replaces -march
         # See https://gist.github.com/fm4dd/c663217935dc17f0fc73c9c81b0aa845
-            if grep -q /proc/device-tree/model 3; then
-                PARAMS_PI = "-mcpu=cortex-a53 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits"
-            elif grep -q /proc/device-tree/model 2; then
-                PARAMS_PI = "-mcpu=cortex-a7 -mfloat-abi=hard -mfpu=neon-vfpv4"
-            elif grep -q /proc/device-tree/model 1; then
-                PARAMS_PI = "-mcpu=arm1176jzf-s -mfloat-abi=hard -mfpu=vfp"
+            if grep -q 3 /proc/device-tree/model; then
+                PARAMS_PI="-mcpu=cortex-a53 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits"
+            elif grep -q 2 /proc/device-tree/model; then
+                PARAMS_PI="-mcpu=cortex-a7 -mfloat-abi=hard -mfpu=neon-vfpv4"
+            elif grep -q 1 /proc/device-tree/model; then
+                PARAMS_PI="-mcpu=arm1176jzf-s -mfloat-abi=hard -mfpu=vfp"
             fi
         fi
-        PARAMS_ARM = "$PARAMS_PI -funsafe-math-optimizations -Wformat=0"
+        PARAMS_ARM="$PARAMS_PI -funsafe-math-optimizations -Wformat=0"
     else # Generic ARM Device
         # Most likely mtune is incorrect here
         PARAMS_ARM = "-mfloat-abi=hard -march=`uname -m` -mtune=cortex-a8 -mfpu=neon -mvectorize-with-neon-quad -funsafe-math-optimizations -Wformat=0 -DNEON_OPTS"
